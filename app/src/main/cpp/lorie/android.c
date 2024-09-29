@@ -162,16 +162,7 @@ Java_com_termux_x11_CmdEntryPoint_start(JNIEnv *env, unused jclass cls, jobjectA
         execlp("logcat", "logcat", "--pid", pid, NULL);
     }
 
-    // adb sets TMPDIR to /data/local/tmp which is pretty useless.
-    if (!strcmp("/data/local/tmp", getenv("TMPDIR") ?: ""))
-        unsetenv("TMPDIR");
-
-    if (!getenv("TMPDIR")) {
-        if (access("/tmp", F_OK) == 0)
-            setenv("TMPDIR", "/tmp", 1);
-        else if (access("/data/data/com.termux/files/usr/tmp", F_OK) == 0)
-            setenv("TMPDIR", "/data/data/com.termux/files/usr/tmp", 1);
-    }
+    setenv("TMPDIR", "/data/data/com.vectras.as3/files/usr/tmp", 1);
 
     if (!getenv("TMPDIR")) {
         char* error = (char*) "$TMPDIR is not set. Normally it is pointing to /tmp of a container.";
@@ -220,14 +211,7 @@ Java_com_termux_x11_CmdEntryPoint_start(JNIEnv *env, unused jclass cls, jobjectA
             setenv("XKB_CONFIG_ROOT", current_path, 1);
     }
 
-    if (!getenv("XKB_CONFIG_ROOT")) {
-        // proot case
-        if (access("/usr/share/X11/xkb", F_OK) == 0)
-            setenv("XKB_CONFIG_ROOT", "/usr/share/X11/xkb", 1);
-        // Termux case
-        else if (access("/data/data/com.termux/files/usr/share/X11/xkb", F_OK) == 0)
-            setenv("XKB_CONFIG_ROOT", "/data/data/com.termux/files/usr/share/X11/xkb", 1);
-    }
+    setenv("XKB_CONFIG_ROOT", "/data/data/com.vectras.as3/files/usr/share/X11/xkb", 1);
 
     if (!getenv("XKB_CONFIG_ROOT")) {
         char* error = (char*) "$XKB_CONFIG_ROOT is not set. Normally it is pointing to /usr/share/X11/xkb of a container.";
