@@ -127,7 +127,7 @@ static jclass FindMethodOrDie(JNIEnv *env, jclass clazz, const char* name, const
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_vectras_as3_x11_CmdEntryPoint_start(JNIEnv *env, unused jclass cls, jobjectArray args) {
+Java_com_vectras_vm_x11_CmdEntryPoint_start(JNIEnv *env, unused jclass cls, jobjectArray args) {
     pthread_t t;
     JavaVM* vm = NULL;
     // execv's argv array is a bit incompatible with Java's String[], so we do some converting here...
@@ -234,7 +234,7 @@ Java_com_vectras_as3_x11_CmdEntryPoint_start(JNIEnv *env, unused jclass cls, job
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_CmdEntryPoint_windowChanged(JNIEnv *env, unused jobject cls, jobject surface, jstring jname) {
+Java_com_vectras_vm_x11_CmdEntryPoint_windowChanged(JNIEnv *env, unused jobject cls, jobject surface, jstring jname) {
     const char *name = !jname ? NULL : (*env)->GetStringUTFChars(env, jname, JNI_FALSE);
     QueueWorkProc(lorieChangeScreenName, NULL, name ? strndup(name, 1024) : strdup("screen"));
     if (name)
@@ -398,7 +398,7 @@ static Bool addFd(unused ClientPtr pClient, void *closure) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_vectras_as3_x11_CmdEntryPoint_getXConnection(JNIEnv *env, unused jobject cls) {
+Java_com_vectras_vm_x11_CmdEntryPoint_getXConnection(JNIEnv *env, unused jobject cls) {
     int client[2];
     jclass ParcelFileDescriptorClass = (*env)->FindClass(env, "android/os/ParcelFileDescriptor");
     jmethodID adoptFd = (*env)->GetStaticMethodID(env, ParcelFileDescriptorClass, "adoptFd", "(I)Landroid/os/ParcelFileDescriptor;");
@@ -419,7 +419,7 @@ void* logcatThread(void *arg) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_vectras_as3_x11_CmdEntryPoint_getLogcatOutput(JNIEnv *env, unused jobject cls) {
+Java_com_vectras_vm_x11_CmdEntryPoint_getLogcatOutput(JNIEnv *env, unused jobject cls) {
     jclass ParcelFileDescriptorClass = (*env)->FindClass(env, "android/os/ParcelFileDescriptor");
     jmethodID adoptFd = (*env)->GetStaticMethodID(env, ParcelFileDescriptorClass, "adoptFd", "(I)Landroid/os/ParcelFileDescriptor;");
     const char *debug = getenv("TERMUX_X11_DEBUG");
@@ -435,7 +435,7 @@ Java_com_vectras_as3_x11_CmdEntryPoint_getLogcatOutput(JNIEnv *env, unused jobje
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_vectras_as3_x11_CmdEntryPoint_connected(__unused JNIEnv *env, __unused jclass clazz) {
+Java_com_vectras_vm_x11_CmdEntryPoint_connected(__unused JNIEnv *env, __unused jclass clazz) {
     return conn_fd != -1;
 }
 
@@ -458,7 +458,7 @@ static inline void checkConnection(JNIEnv* env) {
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_connect(unused JNIEnv* env, unused jobject cls, jint fd) {
+Java_com_vectras_vm_x11_LorieView_connect(unused JNIEnv* env, unused jobject cls, jint fd) {
     if (!Charset.self) {
         // Init clipboard-related JNI stuff
         Charset.self = FindClassOrDie(env, "java/nio/charset/Charset");
@@ -476,7 +476,7 @@ Java_com_vectras_as3_x11_LorieView_connect(unused JNIEnv* env, unused jobject cl
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_handleXEvents(JNIEnv *env, jobject thiz) {
+Java_com_vectras_vm_x11_LorieView_handleXEvents(JNIEnv *env, jobject thiz) {
     checkConnection(env);
     if (conn_fd != -1) {
         lorieEvent e = {0};
@@ -513,7 +513,7 @@ Java_com_vectras_as3_x11_LorieView_handleXEvents(JNIEnv *env, jobject thiz) {
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_startLogcat(JNIEnv *env, unused jobject cls, jint fd) {
+Java_com_vectras_vm_x11_LorieView_startLogcat(JNIEnv *env, unused jobject cls, jint fd) {
     log(DEBUG, "Starting logcat with output to given fd");
 
     switch(fork()) {
@@ -533,7 +533,7 @@ Java_com_vectras_as3_x11_LorieView_startLogcat(JNIEnv *env, unused jobject cls, 
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_setClipboardSyncEnabled(unused JNIEnv* env, unused jobject cls, jboolean enable, __unused jboolean ignored) {
+Java_com_vectras_vm_x11_LorieView_setClipboardSyncEnabled(unused JNIEnv* env, unused jobject cls, jboolean enable, __unused jboolean ignored) {
     if (conn_fd != -1) {
         lorieEvent e = { .clipboardEnable = { .t = EVENT_CLIPBOARD_ENABLE, .enable = enable } };
         write(conn_fd, &e, sizeof(e));
@@ -542,7 +542,7 @@ Java_com_vectras_as3_x11_LorieView_setClipboardSyncEnabled(unused JNIEnv* env, u
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendClipboardAnnounce(JNIEnv *env, __unused jobject thiz) {
+Java_com_vectras_vm_x11_LorieView_sendClipboardAnnounce(JNIEnv *env, __unused jobject thiz) {
     if (conn_fd != -1) {
         lorieEvent e = { .type = EVENT_CLIPBOARD_ANNOUNCE };
         write(conn_fd, &e, sizeof(e));
@@ -551,7 +551,7 @@ Java_com_vectras_as3_x11_LorieView_sendClipboardAnnounce(JNIEnv *env, __unused j
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendClipboardEvent(JNIEnv *env, unused jobject thiz, jbyteArray text) {
+Java_com_vectras_vm_x11_LorieView_sendClipboardEvent(JNIEnv *env, unused jobject thiz, jbyteArray text) {
     if (conn_fd != -1 && text) {
         jsize length = (*env)->GetArrayLength(env, text);
         jbyte* str = (*env)->GetByteArrayElements(env, text, NULL);
@@ -564,7 +564,7 @@ Java_com_vectras_as3_x11_LorieView_sendClipboardEvent(JNIEnv *env, unused jobjec
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendWindowChange(unused JNIEnv* env, unused jobject cls, jint width, jint height, jint framerate) {
+Java_com_vectras_vm_x11_LorieView_sendWindowChange(unused JNIEnv* env, unused jobject cls, jint width, jint height, jint framerate) {
     if (conn_fd != -1) {
         lorieEvent e = { .screenSize = { .t = EVENT_SCREEN_SIZE, .width = width, .height = height, .framerate = framerate } };
         write(conn_fd, &e, sizeof(e));
@@ -573,7 +573,7 @@ Java_com_vectras_as3_x11_LorieView_sendWindowChange(unused JNIEnv* env, unused j
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendMouseEvent(unused JNIEnv* env, unused jobject cls, jfloat x, jfloat y, jint which_button, jboolean button_down, jboolean relative) {
+Java_com_vectras_vm_x11_LorieView_sendMouseEvent(unused JNIEnv* env, unused jobject cls, jfloat x, jfloat y, jint which_button, jboolean button_down, jboolean relative) {
     if (conn_fd != -1) {
         lorieEvent e = { .mouse = { .t = EVENT_MOUSE, .x = x, .y = y, .detail = which_button, .down = button_down, .relative = relative } };
         write(conn_fd, &e, sizeof(e));
@@ -582,7 +582,7 @@ Java_com_vectras_as3_x11_LorieView_sendMouseEvent(unused JNIEnv* env, unused job
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendTouchEvent(unused JNIEnv* env, unused jobject cls, jint action, jint id, jint x, jint y) {
+Java_com_vectras_vm_x11_LorieView_sendTouchEvent(unused JNIEnv* env, unused jobject cls, jint action, jint id, jint x, jint y) {
     if (conn_fd != -1 && action != -1) {
         lorieEvent e = { .touch = { .t = EVENT_TOUCH, .type = action, .id = id, .x = x, .y = y } };
         write(conn_fd, &e, sizeof(e));
@@ -591,7 +591,7 @@ Java_com_vectras_as3_x11_LorieView_sendTouchEvent(unused JNIEnv* env, unused job
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_vectras_as3_x11_LorieView_sendKeyEvent(unused JNIEnv* env, unused jobject cls, jint scan_code, jint key_code, jboolean key_down) {
+Java_com_vectras_vm_x11_LorieView_sendKeyEvent(unused JNIEnv* env, unused jobject cls, jint scan_code, jint key_code, jboolean key_down) {
     if (conn_fd != -1) {
         int code = (scan_code) ?: android_to_linux_keycode[key_code];
         log(DEBUG, "Sending key: %d (%d %d %d)", code + 8, scan_code, key_code, key_down);
@@ -604,7 +604,7 @@ Java_com_vectras_as3_x11_LorieView_sendKeyEvent(unused JNIEnv* env, unused jobje
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendTextEvent(JNIEnv *env, unused jobject thiz, jbyteArray text) {
+Java_com_vectras_vm_x11_LorieView_sendTextEvent(JNIEnv *env, unused jobject thiz, jbyteArray text) {
     if (conn_fd != -1 && text) {
         jsize length = (*env)->GetArrayLength(env, text);
         jbyte *str = (*env)->GetByteArrayElements(env, text, NULL);
@@ -639,7 +639,7 @@ Java_com_vectras_as3_x11_LorieView_sendTextEvent(JNIEnv *env, unused jobject thi
 }
 
 JNIEXPORT void JNICALL
-Java_com_vectras_as3_x11_LorieView_sendUnicodeEvent(JNIEnv *env, unused jobject thiz, jint code) {
+Java_com_vectras_vm_x11_LorieView_sendUnicodeEvent(JNIEnv *env, unused jobject thiz, jint code) {
     if (conn_fd != -1) {
         log(DEBUG, "Sending unicode event: %lc (U+%X)", code, code);
         lorieEvent e = { .unicode = { .t = EVENT_UNICODE, .code = code } };
